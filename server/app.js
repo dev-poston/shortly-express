@@ -15,8 +15,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-
-
 app.get('/',
   (req, res) => {
     res.render('index');
@@ -70,12 +68,9 @@ app.post('/login',
         } else {
           res.redirect('/login');
         }
-
       });
   }
 );
-
-
 
 app.post('/links',
   (req, res, next) => {
