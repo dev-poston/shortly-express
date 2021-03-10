@@ -49,6 +49,7 @@ app.post('/signup',
         } else {
           models.Users.create(req.body)
             .then(() => {
+              //verifySession
               res.redirect('/');
             });
         }
@@ -64,6 +65,7 @@ app.post('/login',
       .then((data) => {
         if (data) {
           if (models.Users.compare(password, data.password, data.salt)) {
+            app.verifySession(req, res, next);
             res.redirect('/');
           } else {
             res.redirect('/login');
@@ -115,7 +117,22 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
-
+//once user signsup or logins in
+  //modify session table to have userid for the associated session.hash
+  //modify res.session.userid for userid
+app.verifySession = function( req, res, next) {
+  let username = req.body.username;
+  models.Users.get({username: username})
+    .then((userInfo) => {
+      console.log('userinfo:', userInfo);
+      models.Sessions.update({hash: req.session.hash}, {userId: userInfo.id})
+        .then(() => {
+          console.log('res.session:', req.session);
+          req.session.userId = userInfo.id;
+          next();
+        });
+    });
+};
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
