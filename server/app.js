@@ -49,8 +49,7 @@ app.post('/signup',
         } else {
           models.Users.create(req.body)
             .then(() => {
-              //verifySession
-              res.redirect('/');
+              app.verifySession(req, res, '/');
             });
         }
       });
@@ -65,8 +64,7 @@ app.post('/login',
       .then((data) => {
         if (data) {
           if (models.Users.compare(password, data.password, data.salt)) {
-            app.verifySession(req, res, next);
-            res.redirect('/');
+            app.verifySession(req, res, '/');
           } else {
             res.redirect('/login');
           }
@@ -118,18 +116,19 @@ app.post('/links',
 /************************************************************/
 
 //once user signsup or logins in
-  //modify session table to have userid for the associated session.hash
-  //modify res.session.userid for userid
-app.verifySession = function( req, res, next) {
-  let username = req.body.username;
-  models.Users.get({username: username})
+//modify session table to have userid for the associated session.hash
+//modify res.session.userid for userid
+
+app.verifySession = function(req, res, next) {
+  let user = req.body.username;
+  //look up username on usertable
+  models.Users.get({username: user})
     .then((userInfo) => {
-      console.log('userinfo:', userInfo);
+      //update session table w request session info
       models.Sessions.update({hash: req.session.hash}, {userId: userInfo.id})
         .then(() => {
-          console.log('res.session:', req.session);
           req.session.userId = userInfo.id;
-          next();
+          res.redirect(next);
         });
     });
 };

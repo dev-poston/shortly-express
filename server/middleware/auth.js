@@ -10,18 +10,26 @@ module.exports.createSession = (req, res, next) => {
   //creating an object with the username and userId from session table corresponding to that has
   //append object to res
   //invalid => delete cookie and session???
+
+  //if there is a cookie on the request
   let hash = req.cookies.shortlyid;
   if (hash) {
+    // go look up if that hash is already on the sessions tables
     models.Sessions.get({ hash: hash })
       .then((session) => {
+        // if session already exsists, set the hash on the request sessions obj
+        // set cookies on the response cookie obj
         if (session) {
           session['hash'] = hash;
           req.session = session;
           res.cookie('shortlyid', hash);
           next();
         } else {
+          //if the session doesnt exsist, create a new session with rand hash
           models.Sessions.create()
             .then((data) => {
+              //look up session, attach user info if userid is present
+              //set the located hash on the request session, set cookies response with the same hash
               models.Sessions.get({ id: data.insertId })
                 .then((hashVal) => {
                   req.session = hashVal;
@@ -32,8 +40,11 @@ module.exports.createSession = (req, res, next) => {
         }
       });
   } else {
+    //if no hash is found on the request, create a session
     models.Sessions.create()
       .then((data) => {
+        //look up session, attach user info if userid is present
+        //set the located hash on the request session, set cookies response with the same hash
         models.Sessions.get({id: data.insertId})
           .then((hashVal) => {
             req.session = hashVal;

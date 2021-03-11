@@ -527,6 +527,7 @@ describe('', function() {
     });
 
     it('assigns session to a user when user logs in', function(done) {
+      console.log('FAILING TEST HERE ----------');
       addUser(function(err, res, body) {
         if (err) { return done(err); }
         var cookies = cookieJar.getCookies('http://127.0.0.1:4568/');
