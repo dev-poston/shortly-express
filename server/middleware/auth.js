@@ -13,7 +13,7 @@ module.exports.createSession = (req, res, next) => {
 
   //if there is a cookie on the request
   let hash = req.cookies.shortlyid;
-  console.log(req.body)
+
   if (hash) {
     // go look up if that hash is already on the sessions tables
     models.Sessions.get({ hash: hash })

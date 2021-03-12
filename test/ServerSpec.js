@@ -527,7 +527,6 @@ describe('', function() {
     });
 
     it('assigns session to a user when user logs in', function(done) {
-      console.log('FAILING TEST HERE ----------');
       addUser(function(err, res, body) {
         if (err) { return done(err); }
         var cookies = cookieJar.getCookies('http://127.0.0.1:4568/');
@@ -590,6 +589,7 @@ describe('', function() {
     });
 
     it('Redirects to login page if a user tries to see all of the links and is not signed in', function(done) {
+
       request('http://127.0.0.1:4568/links', function(error, res, body) {
         if (error) { return done(error); }
         expect(res.req.path).to.equal('/login');
@@ -611,7 +611,7 @@ describe('', function() {
       }
     };
 
-    xbeforeEach(function(done) {
+    beforeEach(function(done) {
       var options = {
         'method': 'POST',
         'followAllRedirects': true,

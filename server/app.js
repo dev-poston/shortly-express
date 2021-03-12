@@ -20,17 +20,29 @@ app.use(Auth.createSession);
 
 app.get('/',
   (req, res) => {
-    res.render('index');
+    app.verifyLogin(req, res)
+      .then(() => {
+        res.render('index');
+      })
+      .catch(() => {
+        res.redirect('/login');
+      });
   });
 
 app.get('/create',
   (req, res) => {
-    res.render('index');
+    app.verifyLogin(req, res)
+      .then(() => {
+        res.render('index');
+      })
+      .catch(() => {
+        res.redirect('/login');
+      });
   });
 
 app.get('/links',
   (req, res, next) => {
-    app.verifySession(req, res)
+    app.verifyLogin(req, res)
       .then(() => {
         models.Links.getAll()
           .then(links => {
@@ -39,6 +51,9 @@ app.get('/links',
           .error(error => {
             res.status(500).send(error);
           });
+      })
+      .catch(() => {
+        res.redirect('/login');
       });
   });
 
@@ -62,6 +77,10 @@ app.post('/signup',
   }
 );
 
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
 app.post('/login',
   (req, res, next) => {
     let username = req.body.username;
@@ -83,6 +102,17 @@ app.post('/login',
       });
   }
 );
+
+app.get('/logout', (req, res, next) => {
+  models.Sessions.delete({hash: req.session.hash})
+    .then(() => {
+      delete req.session;
+      // req.body.username = null;
+      // req.body.password = null;
+      res.cookie('shortlyid', null);
+      res.redirect('/login');
+    });
+});
 
 app.post('/links',
   (req, res, next) => {
@@ -145,6 +175,16 @@ app.verifySession = function(req, res, next) {
   });
 };
 
+app.verifyLogin = function(req, res, next) {
+  return new Promise((resolve, reject) => {
+    if (req.session.userId) {
+      resolve();
+    } else {
+      reject();
+    }
+  });
+};
+
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
 // assume the route is a short code and try and handle it here.
@@ -169,6 +209,8 @@ app.get('/:code', (req, res, next) => {
     })
     .error(error => {
       res.status(500).send(error);
+      // res.status(500);
+      // res.redirect('/');
     })
     .catch(() => {
       res.redirect('/');
