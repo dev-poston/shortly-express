@@ -40,6 +40,14 @@ app.get('/create',
       });
   });
 
+app.get('/signup', (req, res) => {
+  res.render('signup');
+});
+
+app.get('/login', (req, res) => {
+  res.render('login');
+});
+
 app.get('/links',
   (req, res, next) => {
     app.verifyLogin(req, res)
@@ -76,10 +84,6 @@ app.post('/signup',
       });
   }
 );
-
-app.get('/login', (req, res) => {
-  res.render('login');
-});
 
 app.post('/login',
   (req, res, next) => {
