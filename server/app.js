@@ -30,12 +30,15 @@ app.get('/create',
 
 app.get('/links',
   (req, res, next) => {
-    models.Links.getAll()
-      .then(links => {
-        res.status(200).send(links);
-      })
-      .error(error => {
-        res.status(500).send(error);
+    app.verifySession(req, res)
+      .then(() => {
+        models.Links.getAll()
+          .then(links => {
+            res.status(200).send(links);
+          })
+          .error(error => {
+            res.status(500).send(error);
+          });
       });
   });
 
@@ -49,7 +52,10 @@ app.post('/signup',
         } else {
           models.Users.create(req.body)
             .then(() => {
-              app.verifySession(req, res, '/');
+              app.verifySession(req, res)
+                .then(() => {
+                  res.redirect('/');
+                });
             });
         }
       });
@@ -64,7 +70,10 @@ app.post('/login',
       .then((data) => {
         if (data) {
           if (models.Users.compare(password, data.password, data.salt)) {
-            app.verifySession(req, res, '/');
+            app.verifySession(req, res)
+              .then(() => {
+                res.redirect('/');
+              });
           } else {
             res.redirect('/login');
           }
@@ -120,17 +129,20 @@ app.post('/links',
 //modify res.session.userid for userid
 
 app.verifySession = function(req, res, next) {
-  let user = req.body.username;
-  //look up username on usertable
-  models.Users.get({username: user})
-    .then((userInfo) => {
-      //update session table w request session info
-      models.Sessions.update({hash: req.session.hash}, {userId: userInfo.id})
-        .then(() => {
-          req.session.userId = userInfo.id;
-          res.redirect(next);
-        });
-    });
+  return new Promise((resolve, reject) => {
+    let user = req.body.username;
+    //look up username on usertable
+    models.Users.get({username: user})
+      .then((userInfo) => {
+        //update session table w request session info
+        models.Sessions.update({hash: req.session.hash}, {userId: userInfo.id})
+          .then(() => {
+            req.session.userId = userInfo.id;
+            resolve();
+            //res.redirect(next);
+          });
+      });
+  });
 };
 
 /************************************************************/
