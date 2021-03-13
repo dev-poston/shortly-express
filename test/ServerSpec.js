@@ -275,6 +275,29 @@ describe('', function() {
         done();
       });
     });
+
+
+    it('Session is not created when users enter an incorrect password', function (done) {
+      var options = {
+        'method': 'POST',
+        'uri': 'http://127.0.0.1:4568/login',
+        'json': {
+          'username': 'Samantha',
+          'password': 'Alexander'
+        }
+      };
+
+      request(options, function (error, res, body) {
+        if (error) { return done(error); }
+        var queryString = 'SELECT * FROM sessions';
+        db.query(queryString, function (error, sessions) {
+          if (error) { return done(error); }
+          expect(sessions.length).to.equal(2);
+          expect(sessions[1].userId).to.be.null;
+          done();
+        });
+      });
+    });
   });
 
   describe('Sessions Schema:', function() {
@@ -381,6 +404,19 @@ describe('', function() {
           expect(session).to.exist;
           expect(session).to.be.an('object');
           expect(session.hash).to.exist;
+          done();
+        });
+      });
+
+      it('initializing new session should not create a userid', function(done) {
+        var requestWithoutCookies = httpMocks.createRequest();
+        var response = httpMocks.createResponse();
+
+        createSession(requestWithoutCookies, response, function() {
+          var session = requestWithoutCookies.session;
+          //console.log(requestWithoutCookies.body);
+          expect(session).to.exist;
+          expect(session.userId).to.be.null;
           done();
         });
       });
@@ -568,12 +604,21 @@ describe('', function() {
         });
       });
     });
+
   });
 
   describe('Privileged Access:', function() {
 
     it('Redirects to login page if a user tries to access the main page and is not signed in', function(done) {
       request('http://127.0.0.1:4568/', function(error, res, body) {
+        if (error) { return done(error); }
+        expect(res.req.path).to.equal('/login');
+        done();
+      });
+    });
+
+    it('Redirects to login page if a user logs out', function(done) {
+      request('http://127.0.0.1:4568/logout', function(error, res, body) {
         if (error) { return done(error); }
         expect(res.req.path).to.equal('/login');
         done();

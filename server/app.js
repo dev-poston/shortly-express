@@ -111,8 +111,8 @@ app.get('/logout', (req, res, next) => {
   models.Sessions.delete({hash: req.session.hash})
     .then(() => {
       delete req.session;
-      // req.body.username = null;
-      // req.body.password = null;
+      req.body.username = null;
+      req.body.password = null;
       res.cookie('shortlyid', null);
       res.redirect('/login');
     });
